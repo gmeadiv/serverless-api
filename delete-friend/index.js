@@ -15,22 +15,19 @@ exports.handler = async (event) => {
   let status = 500;
   let id = parseInt(event.pathParameters.id);
 
-  console.log(id, '<-- ID --<<');
+  let deleted = false;
 
-  let foundFriend = null;
+  console.log(id, '<-- ID --<<');
 
   try {
     data = await friendsTable.scan().exec();
 
-    data.map(friend => {
-
-      if (friend.id === id) {
-
-        foundFriend = friend;
-
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].id === id) {
+        data.splice(i, 1)
+        deleted = true;
       }
-
-    })
+    }
 
     status = 200;
   } catch (error) {
@@ -42,7 +39,7 @@ exports.handler = async (event) => {
 
   const response = {
       statusCode: status,
-      body: JSON.stringify(foundFriend),
+      body: JSON.stringify(deleted)
   };
 
   return response;
