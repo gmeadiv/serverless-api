@@ -1,6 +1,5 @@
 const dynamoose = require('dynamoose');
 
-
 exports.handler = async (event) => {
 
   const friendSchema = new dynamoose.Schema({
@@ -17,16 +16,27 @@ exports.handler = async (event) => {
 
   let deleted = false;
 
-  console.log(id, '<-- ID --<<');
+  let friendToDelete = null;
 
   try {
     data = await friendsTable.scan().exec();
 
-    for (let i = 0; i < data.length; i++) {
-      if (data[i].id === id) {
-        data.splice(i, 1)
-        deleted = true;
+    data.map(friend => {
+
+      if (friend.id === id) {
+
+        friendToDelete = friend;
+
       }
+
+    })
+
+    if (friendToDelete) {
+
+      await friendsTable.delete(id);
+
+      deleted = true;
+
     }
 
     status = 200;
@@ -35,12 +45,25 @@ exports.handler = async (event) => {
 
     data = new Error(error);
     status = 400;
+    deleted = false;
   }
 
-  const response = {
-      statusCode: status,
-      body: JSON.stringify(deleted)
-  };
+  if (deleted === true) {
 
-  return response;
+    const response = {
+      statusCode: status,
+      body: 'Friend Succesfully Deleted'
+    };
+
+    return response;
+
+  } else {
+
+    const response = {
+      statusCode: status,
+      body: 'Failed to Delete Friend'
+    };
+
+    return response;
+  }
 };
